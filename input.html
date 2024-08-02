@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>House Robber Input</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        #container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1>House Robber Problem</h1>
+        <label for="num_size">Number of Houses:</label>
+        <input type="number" id="num_size" name="num_size" min="1" required>
+        <label for="num">House Values (comma-separated):</label>
+        <input type="text" id="num" name="num" required>
+        <button onclick="solve()">Solve</button>
+    </div>
+
+    <script>
+        function solve() {
+            const numSize = document.getElementById('num_size').value;
+            const num = document.getElementById('num').value;
+            if (numSize && num) {
+                const params = new URLSearchParams({ num_size: numSize, num: num });
+                window.location.href = 'output.html?' + params.toString();
+            } else {
+                alert('Please enter valid inputs');
+            }
+        }
+    </script>
+</body>
+</html>

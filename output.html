@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title style="padding-bottom: 200px;">House Robber Output</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        #controls {
+            margin-bottom: 20px;
+        }
+        #houses-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #houses {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            position: relative;
+            margin-top: 20px;
+        }
+        .house {
+            display: inline-block;
+            width: 100px;
+            height: 100px;
+            margin: 10px;
+            position: relative;
+            font-size: 50px; 
+            text-align: center;
+            line-height: 100px;
+            transition: transform 0.5s ease; 
+        }
+        .house .value {
+            position: absolute;
+            bottom: -20px;
+            width: 100%;
+            text-align: center;
+            font-size: 16px;
+        }
+        .robber {
+            font-size: 30px;
+            position: absolute;
+            top: -40px; 
+            left: 35px; 
+            transition: transform 0.5s ease; 
+        }
+        .initial-position {
+            display: inline-block;
+            width: 100px;
+            height: 100px;
+            margin: 10px;
+            position: relative;
+            font-size: 50px; 
+            text-align: center;
+            line-height: 100px; 
+        }
+        .selected {
+            transform: scale(1.2); 
+        }
+        .total-value {
+            position: absolute;
+            top: -60px;
+            left: 50%; 
+            transform: translateX(-50%);
+            font-size: 16px;
+            transition: transform 0.5s ease; 
+        }
+        .tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .house:hover .tooltip {
+            opacity: 1;
+        }
+        .damaged-house {
+            color: red; 
+        }
+        #summary {
+            margin-top: 30px;
+            text-align: center;
+        }
+        #summary h2 {
+            font-size: 30px;
+            margin-bottom: 10px;
+        }
+        #summary .input-values, #summary .output-values {
+            font-size: 30px;
+            margin-bottom: 20px;
+        }
+        #houses-container h1 {
+            padding-bottom: 50px;
+        }
+        #startButton,#resetButton{
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <button id="startButton">Start Visualization</button>
+        <button id="resetButton">Reset Visualization</button>
+    </div>
+    <div id="houses-container">
+        <h1>House Robber Visualization</h1>
+        <div id="houses">
+            <div class="initial-position"></div>
+        </div>
+    </div>
+    <div id="summary">
+        <h2>Summary</h2>
+        <div class="input-values"></div>
+        <div class="output-values"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+    const startButton = document.getElementById('startButton');
+    const resetButton = document.getElementById('resetButton');
+
+    startButton.addEventListener('click', visualize);
+    resetButton.addEventListener('click', resetVisualization);
+});
+
+function getQueryParams() {
+    const params = new URLSearchParams(window.location.search);
+    return {
+        numSize: params.get('num_size'),
+        num: params.get('num') ? params.get('num').split(',').map(Number) : []
+    };
+}
+
+function visualize() {
+    const { numSize, num } = getQueryParams();
+    if (!num.length) {
+        console.error('No valid numbers provided.');
+        return;
+    }
+    
+    const housesContainer = document.getElementById('houses');
+    const inputValuesDiv = document.querySelector('#summary .input-values');
+    const outputValuesDiv = document.querySelector('#summary .output-values');
+    
+    inputValuesDiv.textContent = `Input Values: ${num.join(', ')}`;
+    
+    num.forEach((value, index) => {
+        const houseDiv = document.createElement('div');
+        houseDiv.classList.add('house');
+        houseDiv.innerHTML = `
+            <i class="fas fa-home"></i>
+            <div class="value">${value}</div>
+            <div class="tooltip">Value: ${value}</div>
+        `;
+        housesContainer.appendChild(houseDiv);
+    });
+
+    const selectedHouses = robHouses(num);
+    console.log("Selected Houses:", selectedHouses);
+
+    displayRobber(selectedHouses, num, outputValuesDiv);
+}
+
+function robHouses(nums) {
+    const n = nums.length;
+    if (n === 0) return [];
+    if (n === 1) return [0];
+    const dp = Array(n).fill(0);
+    const selected = Array(n).fill(false);
+
+    dp[0] = nums[0];
+    selected[0] = true;
+    if (nums[1] > nums[0]) {
+        dp[1] = nums[1];
+        selected[1] = true;
+        selected[0] = false;
+    } else {
+        dp[1] = nums[0];
+    }
+
+    for (let i = 2; i < n; i++) {
+        if (dp[i - 1] > dp[i - 2] + nums[i]) {
+            dp[i] = dp[i - 1];
+            selected[i] = false;
+        } else {
+            dp[i] = dp[i - 2] + nums[i];
+            selected[i] = true;
+        }
+    }
+
+    const result = [];
+    for (let i = n - 1; i >= 0;) {
+        if (selected[i]) {
+            result.push(i);
+            i -= 2;
+        } else {
+            i -= 1;
+        }
+    }
+    return result.reverse();
+}
+
+function displayRobber(selectedHouses, num, outputValuesDiv) {
+    const houses = document.querySelectorAll('.house');
+    const initialPosition = document.querySelector('.initial-position');
+    const robber = document.createElement('i');
+    robber.classList.add('fas', 'fa-user-secret', 'robber');
+    const totalValue = document.createElement('div');
+    totalValue.classList.add('total-value');
+    totalValue.textContent = "0";
+    initialPosition.appendChild(robber);
+    initialPosition.appendChild(totalValue);
+
+    let sum = 0;
+    const baseMovementDelay = 2000; 
+
+    selectedHouses.forEach((index, i) => {
+        setTimeout(() => {
+            const currentHouse = houses[index];
+            houses.forEach(house => house.classList.remove('selected')); 
+            currentHouse.classList.add('selected'); 
+            const rect = currentHouse.getBoundingClientRect();
+            const housesContainerRect = houses[0].parentNode.getBoundingClientRect();
+            robber.style.transform = `translate(${rect.left - housesContainerRect.left}px, ${rect.top - housesContainerRect.top - 40}px)`;
+            totalValue.style.transform = `translate(${rect.left - housesContainerRect.left}px, ${rect.top - housesContainerRect.top - 80}px)`;
+            
+            let houseValue = num[index];
+            const robInterval = setInterval(() => {
+                if (houseValue >= 5) {
+                    houseValue -= 5;
+                    sum += 5;
+                } else if (houseValue > 0) {
+                    sum += houseValue;
+                    houseValue = 0;
+                } else {
+                    clearInterval(robInterval);
+                    return;
+                }
+                num[index] = houseValue;
+                currentHouse.querySelector('.value').textContent = houseValue;
+                totalValue.textContent = sum;
+            }, 500);
+
+            
+            const stayDuration = Math.ceil(num[index] / 5) * 500;
+
+            setTimeout(() => {
+                clearInterval(robInterval);
+             
+                currentHouse.innerHTML = `
+                    <i class="fas fa-home damaged-house"></i>
+                    <div class="value">${houseValue}</div>
+                `;
+                if (index === selectedHouses[selectedHouses.length - 1]) {
+                    outputValuesDiv.textContent = `Output Value: ${sum}`;
+                    document.getElementById('summary').style.display = 'block';
+                }
+            }, stayDuration); 
+
+        }, baseMovementDelay * i);
+    });
+}
+
+function resetVisualization() {
+    const housesContainer = document.getElementById('houses');
+    housesContainer.innerHTML = '<div class="initial-position"></div>';
+    document.querySelector('#summary .input-values').textContent = '';
+    document.querySelector('#summary .output-values').textContent = '';
+    document.getElementById('summary').style.display = 'none';
+}
+
+    </script>
+</body>
+</html>
